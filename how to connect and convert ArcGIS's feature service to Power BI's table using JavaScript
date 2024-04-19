@@ -1,0 +1,47 @@
+//Abre consulta em branco e vai em editor avançado 
+//editar credenciais
+//features > list > transformar para tabela > 
+//configurar colunas de data em > adicionar coluna > coluna personalizada > com o nome do campo copiado > 
+
+
+let
+// Gerar token
+   Fonte_token = Json.Document(Web.Contents("https://www.arcgis.com",
+    [        
+    RelativePath="sharing/rest/oauth2/token",
+        Query=
+        [
+            client_id="xx",
+            client_secret="xx",
+            grant_type="client_credentials"
+        ]
+    ]
+    )),
+ 
+//Converter resultado em tabela        
+    #"Converted to Table" = Record.ToTable(Fonte_token),
+ 
+//Capturar somente o token
+    token_ = #"Converted to Table"{0}[Value],
+ 
+//Consulta feature Service
+    fs_url = Json.Document(Web.Contents("https://services6.arcgis.com/",
+    [ 
+        RelativePath ="QJAp6nG4ishOkuMg/arcgis/rest/services/service_ff44492835e14728a44fc7a3a178a6ec/FeatureServer/0/query",
+        Query=
+        [
+        where="1=1",  
+        outFields="*",
+        returnGeometry="false",
+        f="json",
+        token =  token_ 
+        ]
+    ]
+    ))
+in
+    fs_url
+
+
+//Formatar campos de data
+#datetime(1970,1,1,0,0,0)+#duration(0,0,0,Number.From(
+[#"NOME DO CAMPO"]/1000))
